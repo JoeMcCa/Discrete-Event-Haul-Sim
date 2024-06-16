@@ -1,2 +1,2 @@
 # Discrete-Event-Haul-Sim
-I am doing this project to work on 
+I am doing this project to practice making discrete event simulations.
