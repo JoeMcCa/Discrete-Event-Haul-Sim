@@ -2,10 +2,11 @@
 
 import numpy as np
 import simpy
-import simpy.rt
+#import simpy.rt
 
+REALTIME = 0
 SEED = 42
-TOTALHAULTRUCKS = 1
+TOTALHAULTRUCKS = 5
 GOLINETIMEVAR = 15
 TOTALSIMTIME = 12*60
 MEANDEPARTTIME = 30
@@ -50,11 +51,18 @@ class HaulTruck():
 
     def HaulRoad(self):
         if not self.Loaded:
-            print(f'{env.now:0.2f} {self.name}: Moving to Excavator')
-            speed = np.random.normal(40, 2)
-            time = EX1HAULROUTEDIST * 60 / speed
-            yield env.timeout(time)
-            env.process(self.LoadingAtDigger())
+            if env.now > 690:
+                print(f'{env.now:0.2f} {self.name}: Returning to Go-Line')
+                speed = np.random.normal(40, 2)
+                time = GOLINETODIGGER * 60 / speed
+                yield env.timeout(time)
+                print(f'{env.now:0.2f} {self.name}: Parked at Go-Line')
+            else:
+                print(f'{env.now:0.2f} {self.name}: Moving to Excavator')
+                speed = np.random.normal(40, 2)
+                time = EX1HAULROUTEDIST * 60 / speed
+                yield env.timeout(time)
+                env.process(self.LoadingAtDigger())
         else:
             print(f'{env.now:0.2f} {self.name}: Hauling to Tip')
             speed = np.random.normal(25, 2)
@@ -71,11 +79,15 @@ class HaulTruck():
             tipStartTime = env.now
             queueTime = env.now - queueEnterTime
             print(f'{env.now:0.2f} {self.name}: Tipping Started, queue time was {queueTime:7.2f}')
-            tipTime = np.random.normal(MEANLOADTIME*0.33, 0.33)
+            tipTime = np.clip(np.random.normal(MEANLOADTIME*0.33, 0.33),0)
             yield env.timeout(tipTime)
             env.process(self.HaulRoad())
 
-env = simpy.rt.RealtimeEnvironment(factor=0.3)
+
+if REALTIME == 1:
+    env = simpy.rt.RealtimeEnvironment(factor=0.3)
+else:
+    env = simpy.Environment()
 
 global digger
 global tippoint

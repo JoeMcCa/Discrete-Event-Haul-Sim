@@ -1,5 +1,3 @@
 import numpy as np
 
-x = 1.24732
-
-print(f'Diesel Level {x}')
+print(np.clip(np.random.normal(0,10,10),0,100))
